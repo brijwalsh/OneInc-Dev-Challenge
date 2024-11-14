@@ -1,0 +1,35 @@
+[ApiController]
+[Route("api/[controller]")]
+public class UsersController : ControllerBase
+{
+    private readonly IUserService _userService;
+    private readonly ILogger<UsersController> _logger;
+
+    public UsersController(IUserService userService, ILogger<UsersController> logger)
+    {
+        _userService = userService;
+        _logger = logger;
+    }
+
+    [HttpPost]
+    public async Task<IActionResult> CreateUser([FromBody] UserCreateDto userDto)
+    {
+        if (!ModelState.IsValid)
+        {
+            return BadRequest(ModelState);
+        }
+
+        try
+        {
+            var user = await _userService.CreateUserAsync(userDto);
+            return CreatedAtAction(nameof(GetUserById), new { id = user.Id }, user);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error occurred while creating a user.");
+            return StatusCode(500, "Internal server error");
+        }
+    }
+
+    // Other methods...
+}
